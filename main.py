@@ -599,16 +599,27 @@ async def main_page():
                         expansion.open()
                 with (
                     ui.expansion("Informationen", icon="help_outline")
-                    .classes("w-full no-wrap")
-                    .style("width: min(40vw, 400px)")
+                            .classes("w-full no-wrap")
+                            .style("width: min(40vw, 400px)")
                 ):
                     ui.label(
                         "Diese Prototyp-Applikation wurde vom Statistischen Amt Kanton Zürich entwickelt."
                     )
+                    ui.html(
+                        "Gehostet zur Zeit von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a>."
+                    ).classes("text-sm")
                 ui.button(
                     "Anleitung öffnen",
                     on_click=lambda: ui.open(help_page, new_tab=True),
                 ).props("no-caps")
+                ui.html("Dieser Service wird zur Zeit von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a> zur Verfügung gestellt.")
+                ui.html("Interessiert für Eure Organisation das einzusetzen?")
+                ui.button(
+                    "Kontaktiere uns!",
+                    on_click=lambda: ui.open("https://www.liip.ch/contact", new_tab=True),
+                ).props("no-caps").style(
+                    "background-color: rgb(25, 159, 0) !important; color: white; border: none; padding: 10px 20px; cursor: pointer;"
+                )
 
             display_files(user_id=user_id)
 
