@@ -613,7 +613,8 @@ async def main_page():
                     on_click=lambda: ui.open(help_page, new_tab=True),
                 ).props("no-caps")
                 ui.html("Dieser Service wird zur Zeit von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a> zur Verfügung gestellt.")
-                ui.html("Interessiert für Eure Organisation das einzusetzen?")
+                ui.html("Die Dateien werden von Zeit zu Zeit gelöscht. Bitte keine sensitiven Daten hochladen!")
+                ui.html("Interessiert für Eure Organisation diesen Service einzusetzen? Oder sonstige Fragen?")
                 ui.button(
                     "Kontaktiere uns!",
                     on_click=lambda: ui.open("https://www.liip.ch/contact", new_tab=True),
