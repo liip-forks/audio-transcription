@@ -616,7 +616,8 @@ async def main_page():
                     on_click=lambda: ui.open(help_page, new_tab=True),
                 ).props("no-caps")
                 ui.html("Dieser Service wird von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a> zur Verfügung gestellt.")
-                ui.html("Bitte keine sensitiven Daten hochladen!<br/>Dieser Service wird nicht vom Kanton Zürich gehostet<br/> und läuft ohne Auftrag von diesem.<br/>Die Dateien werden regelmässig gelöscht.")
+                ui.html("Bitte keine sensitiven Daten hochladen! <br/>Die Daten bleiben zwar nur auf diesem Server, <br/>aber für sensitive Daten empfehlen wir eine eigene Instanz.<br/>Die Dateien werden regelmässig gelöscht.")
+                ui.html("Dieser Service wird nicht vom Kanton Zürich gehostet<br/> und läuft ohne Auftrag von diesem.")
                 ui.html("Interessiert für Eure Organisation diesen Service einzusetzen?<br/> Oder sonstige Fragen?")
                 ui.button(
                     "Kontaktiere uns!",
