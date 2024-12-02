@@ -545,10 +545,12 @@ async def main_page():
             .classes("q-pa-xs-xs")
         ):
             ui.image(join(ROOT, "data", "banner.png")).style(
-                "height: 90px; width: 443px;"
+                "height: 160px; width: 443px;"
             )
         with ui.row():
             with ui.column():
+                ui.html("Bitte keine sensitiven Daten hochladen!<br/> Dieser Service wird nicht vom Kanton Zürich gehostet.").classes("pl-2 font-bold p-0")
+
                 with ui.card().classes("border p-4"):
                     with ui.card().style("width: min(40vw, 400px)"):
                         upload_element = (
@@ -605,16 +607,17 @@ async def main_page():
                     ui.label(
                         "Diese Prototyp-Applikation wurde vom Statistischen Amt Kanton Zürich entwickelt."
                     )
+                    ui.html("Der Sourcecode ist auf <a style='text-decoration: underline;' href='https://github.com/machinelearningZH/audio-transcription' target='_blank'>github.com/machinelearningZH/audio-transcription</a> verfügbar.")
                     ui.html(
-                        "Gehostet zur Zeit von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a>."
+                        "Gehostet von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a>."
                     ).classes("text-sm")
                 ui.button(
                     "Anleitung öffnen",
                     on_click=lambda: ui.open(help_page, new_tab=True),
                 ).props("no-caps")
-                ui.html("Dieser Service wird zur Zeit von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a> zur Verfügung gestellt.")
-                ui.html("Die Dateien werden von Zeit zu Zeit gelöscht. Bitte keine sensitiven Daten hochladen!")
-                ui.html("Interessiert für Eure Organisation diesen Service einzusetzen? Oder sonstige Fragen?")
+                ui.html("Dieser Service wird von der <a style='text-decoration: underline;' href='https://liip.ch' target='_blank'>Liip AG</a> zur Verfügung gestellt.")
+                ui.html("Bitte keine sensitiven Daten hochladen!<br/>Dieser Service wird nicht vom Kanton Zürich gehostet<br/> und läuft ohne Auftrag von diesem.<br/>Die Dateien werden regelmässig gelöscht.")
+                ui.html("Interessiert für Eure Organisation diesen Service einzusetzen?<br/> Oder sonstige Fragen?")
                 ui.button(
                     "Kontaktiere uns!",
                     on_click=lambda: ui.open("https://www.liip.ch/contact", new_tab=True),
