@@ -58,6 +58,12 @@
     - Run the following command with your specific cuda version. **This example is for cuda version 11.8, edit the command for your installed version**.
     - `conda install pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 pytorch-cuda=11.8 -c pytorch -c nvidia`
     - `pip install -r requirements.txt`
+    - MacOS 
+      - Don't do the above, but:
+      - `conda install pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2  -c pytorch `
+      - `pip install -r requirements.txt && pip install -r requirements-mps.txt`
+      - And set `DEVICE = "mps"` in your `.env` file
+      - You don't need to uninstall onnxruntime in the next step
 - Make sure, that the onnxruntime-gpu package is installed. Otherwise uninstall onnxruntime and install onnxruntime-gpu (if in doubt, just reinstall onnxruntime-gpu)
     - `pip uninstall onnxruntime`
     - `pip install --force-reinstall onnxruntime-gpu`
@@ -78,7 +84,7 @@
 
 ### Running the Application
 Start the worker and frontend scripts:
-- Linux
+- Linux / MacOS
     - `tmux new -s transcribe_worker`
     - `conda activate transcribo`
     - `python worker.py`

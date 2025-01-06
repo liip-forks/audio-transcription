@@ -166,7 +166,7 @@ def transcribe_file(file_name, multi_mode=False, multi_mode_track=None):
             diarize_model,
             DEVICE,
             None,
-            add_language=True,
+            add_language=(False if DEVICE == "mps" else True), # on MPS is rather slow and unreliable, but you can try with setting this to true
             hotwords=hotwords,
             multi_mode_track=multi_mode_track,
         )
@@ -180,18 +180,19 @@ def transcribe_file(file_name, multi_mode=False, multi_mode_track=None):
 
 
 if __name__ == "__main__":
-    if DEVICE == "cpu":
+    WHISPER_DEVICE = "cpu" if DEVICE == "mps" else DEVICE
+    if WHISPER_DEVICE == "cpu":
         compute_type = "float32"
     else:
         compute_type = "float16"
 
     # Load models
     if ONLINE:
-        model = whisperx.load_model("large-v3", DEVICE, compute_type=compute_type)
+        model = whisperx.load_model("large-v3", WHISPER_DEVICE , compute_type=compute_type)
     else:
         model = whisperx.load_model(
             "large-v3",
-            DEVICE,
+            WHISPER_DEVICE,
             compute_type=compute_type,
             download_root=join("models", "whisperx"),
         )

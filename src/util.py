@@ -1,5 +1,6 @@
 import subprocess
-
+import os
+DEVICE = os.getenv("DEVICE")
 
 def get_length(filename):
     result = subprocess.run(
@@ -26,9 +27,15 @@ def time_estimate(filename, online=True):
             return 1, 1
         run_time = get_length(filename)
         if online:
-            return run_time / 10, run_time
+            if DEVICE == "mps":
+                return run_time / 5, run_time
+            else:
+                return run_time / 10, run_time
         else:
-            return run_time / 6, run_time
+            if DEVICE == "mps":
+                return run_time / 3, run_time
+            else:
+                return run_time / 6, run_time
     except Exception as e:
         print(e)
         return -1, -1

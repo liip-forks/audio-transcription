@@ -7,5 +7,7 @@ pyannote.database==5.0.1
 pyannote.metrics==3.2.1
 pyannote.pipeline==3.0.1
 python-dotenv==1.0.1
-whisperx==3.1.5
+whisperx==3.2.0
 speechbrain==0.5.16
+numpy==1.26.3
+

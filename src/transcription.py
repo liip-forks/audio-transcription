@@ -1,3 +1,4 @@
+import os
 import torch
 import pandas as pd
 import time
@@ -5,6 +6,8 @@ import whisperx
 from whisperx.audio import SAMPLE_RATE, log_mel_spectrogram, N_SAMPLES
 
 from data.const import data_leaks
+
+DEVICE = os.getenv("DEVICE")
 
 
 def get_prompt(self, tokenizer, previous_tokens, without_timestamps, prefix):
@@ -58,15 +61,32 @@ def transcribe(
     # Convert audio given a file path.
     audio = whisperx.load_audio(complete_name)
 
-    start = time.time()
+    start_time = time.time()
+
     if len(hotwords) > 0:
         model.options = model.options._replace(prefix=" ".join(hotwords))
-    result1 = model.transcribe(audio, batch_size=batch_size, language="de")
+    print ("Transcribing...")
+    if DEVICE == "mps":
+        import mlx_whisper
+        decode_options={"language": None, "prefix": " ".join(hotwords)}
+
+        result1 = mlx_whisper.transcribe(
+            complete_name,
+            path_or_hf_repo="mlx-community/whisper-large-v3-mlx",
+            **decode_options,
+        )
+    else:
+        result1 = model.transcribe(audio, batch_size=batch_size, language="de")
+
+    print(f"Transcription took {time.time() - start_time:.2f} seconds.")
     if len(hotwords) > 0:
         model.options = model.options._replace(prefix=None)
 
     # Align whisper output.
     model_a, metadata = whisperx.load_align_model(language_code=result1["language"], device=device)
+    start_aligning = time.time()
+
+    print ("Aligning...")
     result2 = whisperx.align(
         result1["segments"],
         model_a,
@@ -76,15 +96,28 @@ def transcribe(
         return_char_alignments=False,
     )
 
+    print(f"Alignment took {time.time() - start_aligning:.2f} seconds.")
+
     if add_language:
+        start_language = time.time()
+        print ("Adding language...")
         for segment in result2["segments"]:
             start = (int(segment["start"]) * 16_000) - 8_000
             end = ((int(segment["end"]) + 1) * 16_000) + 8_000
             segment_audio = audio[start:end]
-            language, language_probability = detect_language(segment_audio, model)
-            segment["language"] = language if language_probability > 0.85 else "de"
+            if (DEVICE == "mps"):
+                ## This is a workaround to use the whisper model in mps, it doesn't have "detect language" method
+                decode_options={"language": None, "prefix": " ".join(hotwords)}
+                language = mlx_whisper.transcribe(segment_audio,path_or_hf_repo="mlx-community/whisper-large-v3-mlx", **decode_options)
+                segment["language"] = language["language"]
+            else:
+                language, language_probability = detect_language(segment_audio, model)
+                segment["language"] = language if language_probability > 0.85 else "de"
+        print(f"Adding language took {time.time() - start_language:.2f} seconds.")
 
     # Diarize and assign speaker labels.
+    start_diarize = time.time()
+    print ("Diarizing...")
     audio_data = {
         "waveform": torch.from_numpy(audio[None, :]),
         "sample_rate": SAMPLE_RATE,
@@ -102,6 +135,8 @@ def transcribe(
             segment["speaker"] = "SPEAKER_" + str(multi_mode_track).zfill(2)
         result3 = result2
 
+    print(f"Diarization took {time.time() - start_diarize:.2f} seconds.")
+    print (f"Total time: {time.time() - start_time:.2f} seconds.")
     torch.cuda.empty_cache()
 
     # Text cleanup.
