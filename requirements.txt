@@ -9,3 +9,4 @@ pyannote.pipeline==3.0.1
 python-dotenv==1.0.1
 whisperx==3.1.5
 speechbrain==0.5.16
+pyAudio==0.2.14

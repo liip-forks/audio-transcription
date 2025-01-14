@@ -15,6 +15,14 @@ from src.help import (
     help as help_page,
 )  # Renamed to avoid conflict with built-in help function
 
+########### AUDIO RECORDER START
+import logging
+import threading
+import pyaudio
+import wave
+
+########### AUDIO RECORDER END
+
 # Load environment variables
 load_dotenv()
 
@@ -32,6 +40,85 @@ if WINDOWS:
 
 BACKSLASHCHAR = "\\"
 user_storage = {}
+
+# TODO REMOVE Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+########### AUDIO RECORDER START
+
+is_recording = False
+current = os.getcwd()
+main_dir = os.path.dirname(current)
+
+
+def record_audio(record_time, user_id):
+    # Make sure directory exists
+    in_path = join(ROOT, "data", "in", user_id)
+    out_path = join(ROOT, "data", "out", user_id)
+
+    os.makedirs(in_path, exist_ok=True)
+    os.makedirs(out_path, exist_ok=True)
+
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=1024)
+    frames = []
+    start_time = time.time()
+
+    while is_recording:
+        data = stream.read(1024)
+        frames.append(data)
+        passed = time.time() - start_time
+        seconds = passed % 60
+        minutes = passed // 60
+        hours = minutes // 60
+        record_time.text = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+
+    # Save the recorded input
+    audio_recording_file_path = str(in_path + '/')
+    recording_file_name = f"recorded{datetime.datetime.now()}.wav"
+
+    try:
+        # Validate file path
+        full_path = os.path.join(audio_recording_file_path, recording_file_name)
+        if not full_path.endswith('.wav'):
+            raise ValueError("Invalid file extension. Recording file must have a '.wav' extension.")
+
+        # Open the file and configure it
+        with wave.open(full_path, "wb") as sound_file:
+            sound_file.setnchannels(1)  # Mono channel
+            sound_file.setsampwidth(audio.get_sample_size(pyaudio.paInt16))  # Sample width
+            sound_file.setframerate(44100)  # Sample rate
+            sound_file.writeframes(b"".join(frames))
+            sound_file.close()
+
+        print("Sound file created successfully:", full_path)
+    except Exception as e:
+        logging.error("An unexpected error occurred", exc_info=True)
+
+
+def toggle_recording(record_button, record_time, user_id):
+    global is_recording
+    is_recording = not is_recording
+    if is_recording:
+        record_button.text = "Stop Recording"  # Change button text
+        record_button.props("icon=graphic_eq")
+        record_button.classes("bg-red-5 isRecording")
+        record_time.classes("visible", remove='hidden')
+        threading.Thread(target=record_audio, kwargs={'record_time': record_time, 'user_id': user_id}).start()
+        print("Recording started...")
+    else:
+        record_button.text = "Start Recording"  # Reset button text
+        record_button.props("icon=mic")
+        record_button.classes("bg-primary", remove='bg-red-5 isRecording')
+        record_time.classes("hidden")
+        print("Recording stopped...")
+
+########### AUDIO RECORDER END
 
 
 def read_files(user_id):
@@ -67,9 +154,9 @@ def read_files(user_id):
         for u in user_storage:
             for f in user_storage[u].get("file_list", []):
                 if (
-                    "updates" in user_storage[u]
-                    and len(user_storage[u]["updates"]) > 0
-                    and user_storage[u]["updates"][0] == f[0]
+                        "updates" in user_storage[u]
+                        and len(user_storage[u]["updates"]) > 0
+                        and user_storage[u]["updates"][0] == f[0]
                 ):
                     f = user_storage[u]["updates"]
                 if f[2] < 100.0:
@@ -417,6 +504,14 @@ return content.slice({i * 500_000}, {(i + 1) * 500_000});
 async def main_page():
     """Main page of the application."""
 
+    # Pulse effect for audi recording button
+    ui.add_head_html('''
+     <style>
+        @keyframes pulse { 0% {  transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+         .isRecording i {animation: pulse 1s infinite;}
+     </style>
+     ''')
+
     def refresh_file_view(user_id, refresh_queue, refresh_results):
         num_errors = len(user_storage[user_id]["known_errors"])
         read_files(user_id)
@@ -577,6 +672,14 @@ async def main_page():
                                 refresh_file_view=refresh_file_view,
                             ),
                         )
+
+                # Button to record audio
+                with ui.card().classes("border p-4"):
+                    with ui.card().style("width: min(40vw, 400px)"):
+                        record = ui.button("Start Recording", icon='mic').classes('bg-primary').style(
+                            'font-size: 15px; padding: 10px;')
+                        record_time = ui.label("00:00:00:00").classes("hidden")
+                        record.on_click(lambda: toggle_recording(record, record_time, user_id))
 
                 ui.label("")
                 ui.timer(
